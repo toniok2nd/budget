@@ -2,13 +2,73 @@
 
 {% block content %}
 <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h2>My Budget</h2>
-    <a href="{{ url_for('main.history') }}" style="color: var(--primary); text-decoration: none;">View History</a>
+    <div>
+        <h2>My Budget</h2>
+        <small style="color: var(--text-secondary);">Welcome, {{ user.username }}</small>
+    </div>
+    <div>
+        <a href="{{ url_for('main.history') }}"
+            style="color: var(--primary); text-decoration: none; margin-right: 15px;">History</a>
+        <a href="{{ url_for('main.logout') }}" style="color: var(--danger); text-decoration: none;">Logout</a>
+    </div>
 </header>
 
-<div class="card balance-card">
-    <h3>Current Balance</h3>
-    <div class="balance-amount">${{ "%.2f"|format(balance) }}</div>
+
+
+<div class="card" style="text-align: center; background: linear-gradient(135deg, #2E7D32, #4CAF50);">
+    <h3>Monthly Budget Left</h3>
+    <div class="balance-amount">${{ "%.2f"|format(monthly_available) }}</div>
+    <small style="color: rgba(255,255,255,0.8);">from ${{ "%.0f"|format(total_monthly_limit) }} limit</small>
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <!-- Period Selector Form -->
+    <form action="{{ url_for('main.index') }}" method="GET" style="display: flex; gap: 10px;">
+        <select name="month" onchange="this.form.submit()"
+            style="padding: 5px; background: #333; color: white; border: 1px solid #444; border-radius: 4px;">
+            {% for m in range(1, 13) %}
+            <option value="{{ m }}" {{ 'selected' if m==selected_month else '' }}>
+                {{ date(2000, m, 1).strftime('%B') }}
+            </option>
+            {% endfor %}
+        </select>
+        <select name="year" onchange="this.form.submit()"
+            style="padding: 5px; background: #333; color: white; border: 1px solid #444; border-radius: 4px;">
+            {% for y in range(2023, 2036) %}
+            <option value="{{ y }}" {{ 'selected' if y==selected_year else '' }}>{{ y }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <div style="text-align: right;">
+        <a href="{{ url_for('main.categories') }}"
+            style="margin-right: 15px; color: var(--text-secondary); text-decoration: none;">Categories</a>
+        <a href="{{ url_for('main.manage_budgets') }}"
+            style="color: var(--primary); text-decoration: none; font-weight: bold;">Manage Budgets &rarr;</a>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Budget Progress</h3>
+    {% for b in budget_data %}
+    <div style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.95rem;">
+            <span><span style="margin-right: 5px;">{{ b.icon }}</span>{{ b.name }}</span>
+            <span>${{ "%.0f"|format(b.limit) }} Limit</span>
+        </div>
+
+        <div style="height: 10px; background-color: #333; border-radius: 5px; overflow: hidden; margin-bottom: 5px;">
+            <div style="height: 100%; width: {{ [b.percent, 100]|min }}%; background-color: {{ b.color }};"></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+            <span style="color: var(--danger);">Spent: ${{ "%.2f"|format(b.spent) }}</span>
+            <span style="color: {{ 'var(--success)' if b.available >= 0 else 'var(--danger)' }}; font-weight: bold;">
+                Available: ${{ "%.2f"|format(b.available) }}
+            </span>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 
 <div class="card">
@@ -25,8 +85,14 @@
         {% for t in transactions %}
         <li class="transaction-item">
             <div class="transaction-info">
-                <h4>{{ t.description }}</h4>
-                <p>{{ t.category.name if t.category else 'Uncategorized' }} • {{ t.date.strftime('%b %d') }}</p>
+                <div style="display: flex; align-items: center;">
+                    <span style="font-size: 1.5rem; margin-right: 10px;">{{ t.category.icon if t.category else '🏷️'
+                        }}</span>
+                    <div>
+                        <h4>{{ t.description }}</h4>
+                        <p>{{ t.category.name if t.category else 'Uncategorized' }} • {{ t.date.strftime('%b %d') }}</p>
+                    </div>
+                </div>
             </div>
             <div class="amount {{ t.type }}">
                 {{ "+" if t.type == 'income' else "-" }}${{ "%.2f"|format(t.amount) }}

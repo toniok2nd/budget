@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header style="margin-bottom: 20px;">
+    <a href="{{ url_for('main.index') }}" style="color: var(--text-secondary); text-decoration: none;">&larr; Back to
+        Dashboard</a>
+    <h2>Manage Budgets</h2>
+    <p style="color: var(--text-secondary);">Set monthly limits for each category.</p>
+
+    <form action="{{ url_for('main.manage_budgets') }}" method="GET"
+        style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <select name="month" onchange="this.form.submit()"
+            style="padding: 5px; background: #333; color: white; border: 1px solid #444; border-radius: 4px;">
+            {% for m in range(1, 13) %}
+            <option value="{{ m }}" {{ 'selected' if m==selected_month else '' }}>
+                {{ date(2000, m, 1).strftime('%B') }}
+            </option>
+            {% endfor %}
+        </select>
+        <select name="year" onchange="this.form.submit()"
+            style="padding: 5px; background: #333; color: white; border: 1px solid #444; border-radius: 4px;">
+            {% for y in range(2023, 2036) %}
+            <option value="{{ y }}" {{ 'selected' if y==selected_year else '' }}>{{ y }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</header>
+
+<form action="{{ url_for('main.copy_budgets') }}" method="POST" style="margin-bottom: 20px;">
+    <input type="hidden" name="month" value="{{ selected_month }}">
+    <input type="hidden" name="year" value="{{ selected_year }}">
+    <button type="submit" class="btn" style="background-color: #555; color: white;">Copy from Previous Month</button>
+</form>
+
+<form action="{{ url_for('main.manage_budgets') }}" method="POST">
+    <input type="hidden" name="month" value="{{ selected_month }}">
+    <input type="hidden" name="year" value="{{ selected_year }}">
+    <div class="card">
+        {% for item in items %}
+        <div class="form-group"
+            style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+            <label for="budget_{{ item.category.id }}"
+                style="margin: 0; min-width: 120px; color: {{ item.category.color }}; font-weight: bold;">
+                {{ item.category.name }}
+            </label>
+            <input type="number" step="0.01" name="budget_{{ item.category.id }}" value="{{ item.amount }}"
+                placeholder="0.00" style="width: 150px; text-align: right;">
+        </div>
+        {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Budgets</button>
+</form>
+{% endblock %}

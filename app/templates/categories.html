@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <a href="{{ url_for('main.index') }}" style="color: var(--text-secondary); text-decoration: none;">&larr; Back
+            to Dashboard</a>
+        <h2>Categories</h2>
+    </div>
+    <a href="{{ url_for('main.add_category') }}" class="btn btn-primary" style="width: auto; padding: 10px 20px;">+
+        New</a>
+</header>
+
+<div class="card">
+    <ul class="transaction-list">
+        {% for cat in categories %}
+        <li class="transaction-item">
+            <div class="transaction-info">
+                <span style="font-size: 1.5rem; margin-right: 10px;">{{ cat.icon }}</span>
+                <span style="font-weight: bold; color: {{ cat.color }};">{{ cat.name }}</span>
+            </div>
+            <div>
+                <a href="{{ url_for('main.edit_category', id=cat.id) }}"
+                    style="color: var(--text-secondary); margin-right: 10px;">Edit</a>
+                <a href="{{ url_for('main.delete_category', id=cat.id) }}" style="color: var(--danger);"
+                    onclick="return confirm('Are you sure?')">Delete</a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

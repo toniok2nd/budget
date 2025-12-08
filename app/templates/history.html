@@ -13,8 +13,15 @@
         {% for t in transactions %}
         <li class="transaction-item">
             <div class="transaction-info">
-                <h4>{{ t.description }}</h4>
-                <p>{{ t.category.name if t.category else 'Uncategorized' }} • {{ t.date.strftime('%b %d, %Y') }}</p>
+                <div style="display: flex; align-items: center;">
+                    <span style="font-size: 1.5rem; margin-right: 10px;">{{ t.category.icon if t.category else '🏷️'
+                        }}</span>
+                    <div>
+                        <h4>{{ t.description }}</h4>
+                        <p>{{ t.category.name if t.category else 'Uncategorized' }} • {{ t.date.strftime('%b %d, %Y') }}
+                        </p>
+                    </div>
+                </div>
             </div>
             <div class="amount {{ t.type }}">
                 {{ "+" if t.type == 'income' else "-" }}${{ "%.2f"|format(t.amount) }}

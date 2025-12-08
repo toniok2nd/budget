@@ -1,7 +1,7 @@
 import pytest
 from app import create_app, db
 from config import TestingConfig
-from app.models import Category, Transaction
+from app.models import Category, Transaction, Budget
 
 @pytest.fixture
 def app():

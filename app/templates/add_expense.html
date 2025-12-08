@@ -37,7 +37,7 @@
         <select id="category" name="category">
             <option value="" disabled selected>Select a category</option>
             {% for category in categories %}
-            <option value="{{ category.id }}">{{ category.name }}</option>
+            <option value="{{ category.id }}">{{ category.icon }} {{ category.name }}</option>
             {% endfor %}
         </select>
     </div>

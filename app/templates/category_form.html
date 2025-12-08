@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header style="margin-bottom: 20px;">
+    <a href="{{ url_for('main.categories') }}" style="color: var(--text-secondary); text-decoration: none;">&larr; Back
+        to Categories</a>
+    <h2>{{ 'Edit' if category else 'New' }} Category</h2>
+</header>
+
+<form method="POST">
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" value="{{ category.name if category else '' }}" required
+            placeholder="e.g. Groceries">
+    </div>
+
+    <div class="form-group">
+        <label for="color">Color</label>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="color" id="color" name="color" value="{{ category.color if category else '#ffffff' }}"
+                style="width: 50px; padding: 0; border: none; height: 50px;">
+            <span style="color: var(--text-secondary);">Pick a color</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Icon</label>
+        <div class="icon-picker"
+            style="display: flex; gap: 10px; flex-wrap: wrap; background: #2C2C2C; padding: 10px; border-radius: 8px;">
+            {% set icons = ['🍔','🚗','🛍️','📄','🎬','📦','🏠','✈️','💊','📚','💸','🎓','🎮','🎵','🔧','💄'] %}
+            {% for icon in icons %}
+            <label style="cursor: pointer; font-size: 1.5rem; padding: 5px; border-radius: 5px;" class="icon-option">
+                <input type="radio" name="icon" value="{{ icon }}" {{ 'checked' if (category and category.icon==icon) or
+                    (not category and loop.first) else '' }}>
+                <span>{{ icon }}</span>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Category</button>
+</form>
+
+<style>
+    .icon-picker input {
+        display: none;
+    }
+
+    .icon-picker input:checked+span {
+        background-color: var(--primary);
+        box-shadow: 0 0 5px var(--primary);
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
