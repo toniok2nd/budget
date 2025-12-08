@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header style="margin-bottom: 20px;">
+    <a href="{{ url_for('main.index') }}" style="color: var(--text-secondary); text-decoration: none;">&larr; Back to
+        Dashboard</a>
+    <h2>Add Transaction</h2>
+</header>
+
+<form action="{{ url_for('main.add_transaction') }}" method="POST">
+    <div class="form-group">
+        <label>Transaction Type</label>
+        <div class="type-toggle">
+            <label>
+                <input type="radio" name="type" value="expense" checked>
+                <div class="type-option">Expense</div>
+            </label>
+            <label>
+                <input type="radio" name="type" value="income">
+                <div class="type-option">Income</div>
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="amount">Amount</label>
+        <input type="number" id="amount" name="amount" step="0.01" placeholder="0.00" required autofocus>
+    </div>
+
+    <div class="form-group">
+        <label for="description">Description (Optional)</label>
+        <input type="text" id="description" name="description" placeholder="e.g. Lunch, Groceries">
+    </div>
+
+    <div class="form-group" id="category-group">
+        <label for="category">Category</label>
+        <select id="category" name="category">
+            <option value="" disabled selected>Select a category</option>
+            {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Transaction</button>
+</form>
+
+<script>
+    // Simple script to toggle category visibility for Income
+    const typeRadios = document.querySelectorAll('input[name="type"]');
+    const categoryGroup = document.getElementById('category-group');
+
+    typeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.value === 'income') {
+                categoryGroup.style.display = 'none';
+            } else {
+                categoryGroup.style.display = 'block';
+            }
+        });
+    });
+</script>
+{% endblock %}

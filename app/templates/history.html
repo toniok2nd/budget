@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header style="margin-bottom: 20px;">
+    <a href="{{ url_for('main.index') }}" style="color: var(--text-secondary); text-decoration: none;">&larr; Back to
+        Dashboard</a>
+    <h2>Transaction History</h2>
+</header>
+
+<div class="card">
+    {% if transactions %}
+    <ul class="transaction-list">
+        {% for t in transactions %}
+        <li class="transaction-item">
+            <div class="transaction-info">
+                <h4>{{ t.description }}</h4>
+                <p>{{ t.category.name if t.category else 'Uncategorized' }} • {{ t.date.strftime('%b %d, %Y') }}</p>
+            </div>
+            <div class="amount {{ t.type }}">
+                {{ "+" if t.type == 'income' else "-" }}${{ "%.2f"|format(t.amount) }}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="text-align: center; color: var(--text-secondary);">No transactions yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

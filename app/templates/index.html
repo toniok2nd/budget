@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>My Budget</h2>
+    <a href="{{ url_for('main.history') }}" style="color: var(--primary); text-decoration: none;">View History</a>
+</header>
+
+<div class="card balance-card">
+    <h3>Current Balance</h3>
+    <div class="balance-amount">${{ "%.2f"|format(balance) }}</div>
+</div>
+
+<div class="card">
+    <h3>Spending by Category</h3>
+    <div style="position: relative; height: 250px;">
+        <canvas id="expensesChart"></canvas>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Recent Transactions</h3>
+    {% if transactions %}
+    <ul class="transaction-list">
+        {% for t in transactions %}
+        <li class="transaction-item">
+            <div class="transaction-info">
+                <h4>{{ t.description }}</h4>
+                <p>{{ t.category.name if t.category else 'Uncategorized' }} • {{ t.date.strftime('%b %d') }}</p>
+            </div>
+            <div class="amount {{ t.type }}">
+                {{ "+" if t.type == 'income' else "-" }}${{ "%.2f"|format(t.amount) }}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="text-align: center; color: var(--text-secondary);">No recent transactions.</p>
+    {% endif %}
+</div>
+
+<a href="{{ url_for('main.add_transaction') }}" class="btn-floating">+</a>
+{% endblock %}
