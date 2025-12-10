@@ -35,8 +35,21 @@ A modern, mobile-friendly personal budgeting application built with **Flask**. T
     docker-compose up --build
     ```
 
-3.  **Access the app:**
-    Open your browser and navigate to `http://localhost:5000`.
+3.  **Generate Certificates:**
+    The application is protected by mTLS (Mutual TLS). You need to generate a client certificate to access it.
+    ```bash
+    bash generate_certs.sh
+    ```
+    This will create a `certs` directory with a `client.p12` file.
+
+4.  **Import Client Certificate:**
+    *   Import `certs/client.p12` into your browser's certificate store.
+    *   **Password:** `password`
+
+5.  **Access the app:**
+    Open your browser and navigate to `https://localhost` (Accept the self-signed certificate warning).
+
+    > **Note:** Accessing via `http://localhost` or without the client certificate will result in an error or 404.
 
 ## 📸 Screenshots
 

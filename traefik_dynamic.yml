@@ -1,0 +1,7 @@
+tls:
+  options:
+    myclientauth:
+      clientAuth:
+        caFiles:
+          - /certs/ca.crt
+        clientAuthType: RequireAndVerifyClientCert
