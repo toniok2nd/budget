@@ -19,5 +19,15 @@ def create_app(config_class=Config):
 
     from app.routes import bp as main_bp
     app.register_blueprint(main_bp)
+    
+    with app.app_context():
+        db.create_all()
+        # Ensure default admin user exists
+        from app.models import User
+        if not User.query.filter_by(username='admin').first():
+            admin = User(username='admin', is_admin=True, is_approved=True)
+            admin.set_password('admin')
+            db.session.add(admin)
+            db.session.commit()
 
     return app

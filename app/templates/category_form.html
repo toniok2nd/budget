@@ -27,7 +27,8 @@
         <label>Icon</label>
         <div class="icon-picker"
             style="display: flex; gap: 10px; flex-wrap: wrap; background: #2C2C2C; padding: 10px; border-radius: 8px;">
-            {% set icons = ['🍔','🚗','🛍️','📄','🎬','📦','🏠','✈️','💊','📚','💸','🎓','🎮','🎵','🔧','💄'] %}
+            {% set icons =
+            ['🍔','🚗','🛍️','📄','🎬','📦','🏠','✈️','💊','📚','💸','🎓','🎮','🎵','🔧','💄','🍺','🎉','⚽','🏖️'] %}
             {% for icon in icons %}
             <label style="cursor: pointer; font-size: 1.5rem; padding: 5px; border-radius: 5px;" class="icon-option">
                 <input type="radio" name="icon" value="{{ icon }}" {{ 'checked' if (category and category.icon==icon) or

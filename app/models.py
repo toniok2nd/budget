@@ -7,6 +7,9 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
+    is_admin = db.Column(db.Boolean, default=False)
+    is_approved = db.Column(db.Boolean, default=False)
+    last_login = db.Column(db.DateTime)
     categories = db.relationship('Category', backref='user', lazy=True)
     transactions = db.relationship('Transaction', backref='user', lazy=True)
 

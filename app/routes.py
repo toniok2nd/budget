@@ -4,6 +4,8 @@ from app.models import Category, Transaction, Budget, User
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timedelta, date
 from sqlalchemy import func
+from functools import wraps
+from flask import abort
 
 bp = Blueprint('main', __name__)
 
@@ -20,7 +22,11 @@ def login():
         
         if user is None or not user.check_password(password):
             error = 'Invalid username or password'
+        elif not user.is_approved:
+            error = 'Account pending approval. Please contact the administrator.'
         else:
+            user.last_login = datetime.utcnow()
+            db.session.commit()
             login_user(user)
             return redirect(url_for('main.index'))
             
@@ -39,7 +45,11 @@ def register():
         if User.query.filter_by(username=username).first():
             error = 'Username already exists'
         else:
-            user = User(username=username)
+            # Check if this is the first user
+            user_count = User.query.count()
+            is_first_user = (user_count == 0)
+            
+            user = User(username=username, is_admin=is_first_user, is_approved=is_first_user)
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
@@ -56,8 +66,12 @@ def register():
             db.session.add_all(default_cats)
             db.session.commit()
             
-            login_user(user)
-            return redirect(url_for('main.index'))
+            if is_first_user:
+                login_user(user)
+                return redirect(url_for('main.index'))
+            else:
+                flash('Registration successful. Please wait for admin approval.', 'info')
+                return redirect(url_for('main.login'))
             
     return render_template('register.html', error=error)
 
@@ -65,6 +79,111 @@ def register():
 def logout():
     logout_user()
     return redirect(url_for('main.login'))
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
+@bp.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    users = User.query.all()
+    return render_template('admin_dashboard.html', users=users)
+
+@bp.route('/admin/approve/<int:user_id>')
+@login_required
+@admin_required
+def approve_user(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_approved = True
+    db.session.commit()
+    flash(f'User {user.username} approved.', 'success')
+    return redirect(url_for('main.admin_dashboard'))
+
+@bp.route('/admin/revoke/<int:user_id>')
+@login_required
+@admin_required
+def revoke_user(user_id):
+    if user_id == current_user.id:
+        flash('Cannot revoke your own admin rights/approval.', 'error')
+        return redirect(url_for('main.admin_dashboard'))
+        
+    user = User.query.get_or_404(user_id)
+    user.is_approved = False
+    db.session.commit()
+    flash(f'User {user.username} revoked.', 'warning')
+    return redirect(url_for('main.admin_dashboard'))
+
+@bp.route('/admin/delete/<int:user_id>')
+@login_required
+@admin_required
+def delete_user(user_id):
+    if user_id == current_user.id:
+        flash('Cannot delete yourself.', 'error')
+        return redirect(url_for('main.admin_dashboard'))
+    
+    user = User.query.get_or_404(user_id)
+    
+    # Delete related data first
+    Category.query.filter_by(user_id=user.id).delete()
+    Transaction.query.filter_by(user_id=user.id).delete()
+    Budget.query.filter_by(user_id=user.id).delete() # If budget has user_id, or join?
+    # Budget doesn't have user_id directly, it links to Category.
+    # But since we deleted Categories, Budgets might violate foreign key if not cascade?
+    # Budget links to Category. If we delete Category, what happens to Budget?
+    # Let's check model. Models usually cascade or we delete manual.
+    # Category model: categories = db.relationship('Category', backref='user', lazy=True)
+    # Budget model: category_id. 
+    # Let's clean up properly.
+    # Find all categories for user
+    cats = Category.query.filter_by(user_id=user.id).all()
+    for c in cats:
+        Budget.query.filter_by(category_id=c.id).delete()
+        
+    db.session.delete(user)
+    db.session.commit()
+    flash(f'User {user.username} deleted.', 'success')
+    return redirect(url_for('main.admin_dashboard'))
+
+@bp.route('/admin/toggle_admin/<int:user_id>')
+@login_required
+@admin_required
+def toggle_admin(user_id):
+    if user_id == current_user.id:
+        flash('Cannot change your own admin status.', 'error')
+        return redirect(url_for('main.admin_dashboard'))
+        
+    user = User.query.get_or_404(user_id)
+    user.is_admin = not user.is_admin
+    db.session.commit()
+    status = "promoted to Admin" if user.is_admin else "demoted to User"
+    flash(f'User {user.username} {status}.', 'success')
+    return redirect(url_for('main.admin_dashboard'))
+
+@bp.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        if not current_user.check_password(current_password):
+            flash('Invalid current password', 'error')
+        elif new_password != confirm_password:
+            flash('New passwords do not match', 'error')
+        else:
+            current_user.set_password(new_password)
+            db.session.commit()
+            flash('Password updated successfully', 'success')
+            return redirect(url_for('main.index'))
+    
+    return render_template('change_password.html')
 
 @bp.route('/')
 @login_required
@@ -389,7 +508,5 @@ def delete_category(id):
     db.session.commit()
     return redirect(url_for('main.categories'))
 
-# Updated before_app_request to NOT create sample data automatically since we now do it on registration
-@bp.before_app_request
-def create_tables():
-    db.create_all()
+
+

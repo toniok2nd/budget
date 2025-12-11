@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <a href="{{ url_for('main.index') }}" style="color: var(--text-secondary); text-decoration: none;">&larr; Back
+            to Dashboard</a>
+        <h2>Admin Dashboard</h2>
+    </div>
+</header>
+
+<div class="card">
+    <h3>User Management</h3>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+        <thead>
+            <tr style="text-align: left; border-bottom: 1px solid #444;">
+                <th style="padding: 10px;">ID</th>
+                <th style="padding: 10px;">Username</th>
+                <th style="padding: 10px;">Last Login</th>
+                <th style="padding: 10px;">Status</th>
+                <th style="padding: 10px;">Role</th>
+                <th style="padding: 10px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr style="border-bottom: 1px solid #333;">
+                <td style="padding: 10px;">{{ user.id }}</td>
+                <td style="padding: 10px;">{{ user.username }}</td>
+                <td style="padding: 10px;">
+                    {{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'Never' }}
+                </td>
+                <td style="padding: 10px;">
+                    {% if user.is_approved %}
+                    <span style="color: var(--success);">Approved</span>
+                    {% else %}
+                    <span style="color: var(--warning);">Pending</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 10px;">
+                    {% if user.is_admin %}
+                    <span style="color: #9966FF; font-weight: bold;">Admin</span>
+                    {% else %}
+                    User
+                    {% endif %}
+                </td>
+                <td style="padding: 10px;">
+                    {% if not user.is_approved %}
+                    <a href="{{ url_for('main.approve_user', user_id=user.id) }}" class="btn btn-primary"
+                        style="padding: 5px 10px; font-size: 0.8rem;">Approve</a>
+                    {% endif %}
+
+                    {% if user.id != current_user.id %}
+                    {% if user.is_approved %}
+                    <a href="{{ url_for('main.revoke_user', user_id=user.id) }}"
+                        style="color: var(--warning); font-size: 0.8rem; margin-right: 5px;"
+                        onclick="return confirm('Revoke approval for {{ user.username }}?')">Revoke</a>
+                    {% endif %}
+
+                    <a href="{{ url_for('main.toggle_admin', user_id=user.id) }}"
+                        style="color: var(--info); font-size: 0.8rem; margin-right: 5px;"
+                        onclick="return confirm('Toggle admin status for {{ user.username }}?')">
+                        {{ 'Demote' if user.is_admin else 'Make Admin' }}
+                    </a>
+
+                    <a href="{{ url_for('main.delete_user', user_id=user.id) }}"
+                        style="color: var(--danger); font-size: 0.8rem;"
+                        onclick="return confirm('Permanently delete {{ user.username }} and all data?')">Delete</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
