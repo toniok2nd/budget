@@ -263,7 +263,7 @@ def add_transaction():
     if request.method == 'POST':
         amount = float(request.form.get('amount'))
         description = request.form.get('description')
-        type = request.form.get('type')
+        type = 'expense' # request.form.get('type') - Suppressed income notion, always expense
         category_id = request.form.get('category')
         
         transaction = Transaction(
@@ -284,7 +284,20 @@ def add_transaction():
 @login_required
 def history():
     transactions = Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.date.desc()).all()
+    transactions = Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.date.desc()).all()
     return render_template('history.html', transactions=transactions)
+
+@bp.route('/transactions/<int:id>/delete')
+@login_required
+def delete_transaction(id):
+    transaction = Transaction.query.get_or_404(id)
+    if transaction.user_id != current_user.id:
+        return redirect(url_for('main.history'))
+    
+    db.session.delete(transaction)
+    db.session.commit()
+    flash('Transaction deleted.', 'success')
+    return redirect(url_for('main.history'))
 
 @bp.route('/api/stats/<period>')
 @login_required

@@ -23,8 +23,13 @@
                     </div>
                 </div>
             </div>
-            <div class="amount {{ t.type }}">
-                {{ "+" if t.type == 'income' else "-" }}${{ "%.2f"|format(t.amount) }}
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="amount {{ t.type }}">
+                    {{ "+" if t.type == 'income' else "-" }}${{ "%.2f"|format(t.amount) }}
+                </div>
+                <a href="{{ url_for('main.delete_transaction', id=t.id) }}"
+                    style="color: var(--text-secondary); text-decoration: none; font-size: 1.2rem;"
+                    onclick="return confirm('Delete this transaction?')">&times;</a>
             </div>
         </li>
         {% endfor %}

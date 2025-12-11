@@ -8,19 +8,8 @@
 </header>
 
 <form action="{{ url_for('main.add_transaction') }}" method="POST">
-    <div class="form-group">
-        <label>Transaction Type</label>
-        <div class="type-toggle">
-            <label>
-                <input type="radio" name="type" value="expense" checked>
-                <div class="type-option">Expense</div>
-            </label>
-            <label>
-                <input type="radio" name="type" value="income">
-                <div class="type-option">Income</div>
-            </label>
-        </div>
-    </div>
+    <!-- Income/Expense selection suppressed: all transactions are treated as expenses -->
+    <input type="hidden" name="type" value="expense">
 
     <div class="form-group">
         <label for="amount">Amount</label>
